@@ -24,10 +24,10 @@ import filter
 import controller
 
 logger = logging.getLogger("blogofile.writer")
+template_logger = logging.getLogger("blogofile.template")
 
 
 class Writer(object):
-
     def __init__(self, output_dir):
         self.config = config
         #Base templates are templates (usually in ./_templates) that are only
@@ -107,7 +107,14 @@ class Writer(object):
                     t_file.close()
                     path = util.path_join(self.output_dir, root, t_name)
                     html_file = open(path, "w")
-                    html = self.template_render(template)
+                    # Prepare the "path" variable for the template context.
+                    page_path = util.path_join(root, t_name)
+                    if page_path.startswith('./'):
+                      page_path = page_path[2:]
+                    page_path = '/' + page_path
+                    context = dict(path=page_path, logger=template_logger)
+                    #render the page
+                    html = self.template_render(template, context)
                     #Write to disk
                     html_file.write(html)
                 else:
